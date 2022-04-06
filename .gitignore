@@ -128,3 +128,4 @@ dmypy.json
 # Pyre type checker
 .pyre/
 /lab2/test/
+/lab3/test/
