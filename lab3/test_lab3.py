@@ -22,8 +22,8 @@ class TestLab3(TestCase):
         with patch('sys.stdin', StringIO(input_string)):
             CF.main()
 
-            expected = str(expected).replace("\n", ":")
-            result = str(stdout.getvalue()).replace("\n", ":")
+            expected = str(expected).strip().replace("\n", ":")
+            result = str(stdout.getvalue().strip()).replace("\n", ":")
 
             self.assertEqual(expected, result)
 
@@ -40,9 +40,8 @@ class TestLab3(TestCase):
 
         with patch('sys.stdin', StringIO(input_string)):
             CF.main()
-
-            expected = str(expected).replace("\n", ":")
-            result = str(stdout.getvalue()).replace("\n", ":")
+            expected = str(expected).strip().replace("\n", ":")
+            result = str(stdout.getvalue().strip()).replace("\n", ":")
 
             self.assertEqual(expected, result)
 
@@ -60,8 +59,8 @@ class TestLab3(TestCase):
         with patch('sys.stdin', StringIO(input_string)):
             CF.main()
 
-            expected = str(expected).replace("\n", ":")
-            result = str(stdout.getvalue()).replace("\n", ":")
+            expected = str(expected).strip().replace("\n", ":")
+            result = str(stdout.getvalue().strip()).replace("\n", ":")
 
             self.assertEqual(expected, result)
 

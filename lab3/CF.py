@@ -13,13 +13,16 @@ def main():
 
     N, M = list(int(x) for x in line.split(' '))
 
-    matrix_source = read_matrix(M, N)
+    matrix = read_matrix(M, N)
 
-    matrix_item_item = matrix_source
-    matrix_user_user = matrix_source.T
+    matrix_item_item = matrix
+    matrix_user_user = matrix.T
 
-    matrix_item_item_norm = matrix_item_item - np.nanmean(matrix_item_item, axis=1)
-    matrix_user_user_norm = matrix_user_user - np.nanmean(matrix_user_user, axis=1)
+    matrix_item_item_norm = matrix_item_item - np.nanmean(matrix_item_item, axis=1, keepdims=True)
+    matrix_user_user_norm = matrix_user_user - np.nanmean(matrix_user_user, axis=1, keepdims=True)
+
+    matrix_item_item_norm = np.nan_to_num(matrix_item_item_norm, copy=True, nan=0.0, posinf=None, neginf=None)
+    matrix_user_user_norm = np.nan_to_num(matrix_user_user_norm, copy=True, nan=0.0, posinf=None, neginf=None)
 
     Q = int(input())
     assert 1 <= Q <= 100
@@ -31,6 +34,7 @@ def main():
         item_item = T == 0
 
         matrix = matrix_item_item_norm if item_item else matrix_user_user_norm
+        matrix_source = matrix_item_item if item_item else matrix_user_user
 
         handleQuery(matrix, matrix_source, I, J, item_item, K)
 
@@ -78,17 +82,10 @@ def predict_value(top):
 
 
 def corr_coeff(A, B):
-    difference = ~np.logical_or(np.isnan(A), np.isnan(B))
-    a_same = np.compress(difference, A)
-    b_same = np.compress(difference, B)
+    ssA = (A ** 2).sum()
+    ssB = (B ** 2).sum()
 
-    A_mA = A[np.logical_not(np.isnan(A))]
-    B_mB = B[np.logical_not(np.isnan(B))]
-
-    ssA = (A_mA ** 2).sum()
-    ssB = (B_mB ** 2).sum()
-
-    return np.dot(a_same, b_same.T) / np.sqrt(ssA * ssB)
+    return np.dot(A, B.T) / np.sqrt(ssA * ssB)
 
 
 def read_matrix(M, N):
