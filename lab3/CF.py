@@ -15,8 +15,11 @@ def main():
 
     matrix_source = read_matrix(M, N)
 
-    matrix_item_avg = matrix_source - np.nanmean(matrix_source, axis=1)
-    matrix_user_avg = matrix_source - np.nanmean(matrix_source, axis=0)
+    matrix_item_item = matrix_source
+    matrix_user_user = matrix_source.T
+
+    matrix_item_item_norm = matrix_item_item - np.nanmean(matrix_item_item, axis=1)
+    matrix_user_user_norm = matrix_user_user - np.nanmean(matrix_user_user, axis=1)
 
     Q = int(input())
     assert 1 <= Q <= 100
@@ -27,37 +30,42 @@ def main():
         I, J, T, K = query
         item_item = T == 0
 
-        sim_size = N if item_item else M
+        matrix = matrix_item_item_norm if item_item else matrix_user_user_norm
 
-        a = matrix_item_avg[I, :] if item_item else matrix_user_avg[:, J].T
-        similarities = []
+        handleQuery(matrix, matrix_source, I, J, item_item, K)
 
-        for i in range(sim_size):
-            b = matrix_item_avg[i, :] if item_item else matrix_user_avg[:, i].T
-            similarities.append(corr_coeff(a, b))
 
-        top = []
-        current = I if item_item else J
-        for i, simmilarity in enumerate(similarities):
-            if simmilarity < 0:
-                continue
-            elif i == current:
-                continue
+def handleQuery(matrix_norm, matrix_source, I, J, item_item, K):
+    if not item_item:
+        I, J = J, I
 
-            value = matrix_source[i, J] if item_item else matrix_source[I, i]
-            if math.isnan(value):
-                continue
+    similarities = []
+    first = matrix_norm[I, :]
+    for i in range(matrix_norm.shape[0]):
+        second = matrix_norm[i, :]
+        similarities.append(corr_coeff(first, second))
 
-            top.append((value, simmilarity))
+    top = []
+    for i, simmilarity in enumerate(similarities):
+        if simmilarity < 0:
+            continue
+        elif i == I:
+            continue
 
-        top_limit = len(top) if len(top) < K else K
+        value = matrix_source[i, J]
+        if math.isnan(value):
+            continue
 
-        top.sort(reverse=True, key=lambda x: x[1])
-        top = top[0:top_limit]
+        top.append((value, simmilarity))
 
-        score = predict_value(top)
+    top_limit = len(top) if len(top) < K else K
 
-        print(format_num(score))
+    top.sort(reverse=True, key=lambda x: x[1])
+    top = top[0:top_limit]
+
+    score = predict_value(top)
+
+    print(format_num(score))
 
 
 def predict_value(top):
