@@ -129,3 +129,4 @@ dmypy.json
 .pyre/
 /lab2/test/
 /lab3/test/
+/lab4/test/
