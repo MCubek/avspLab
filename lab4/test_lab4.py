@@ -22,8 +22,10 @@ class TestLab4(TestCase):
         with patch('sys.stdin', StringIO(input_string)):
             NodeRank.main()
 
-            expected = str(expected).strip().replace("\n", ":")
-            result = str(stdout.getvalue().strip()).replace("\n", ":")
+            expected = str(expected).strip()
+            result = str(stdout.getvalue().strip())
+
+            self.maxDiff = None
 
             self.assertEqual(expected, result)
 
@@ -41,8 +43,8 @@ class TestLab4(TestCase):
         with patch('sys.stdin', StringIO(input_string)):
             NodeRank.main()
 
-            expected = str(expected).strip().replace("\n", ":")
-            result = str(stdout.getvalue().strip()).replace("\n", ":")
+            expected = str(expected).strip()
+            result = str(stdout.getvalue().strip())
 
             self.assertEqual(expected, result)
 
@@ -60,8 +62,8 @@ class TestLab4(TestCase):
         with patch('sys.stdin', StringIO(input_string)):
             NodeRank.main()
 
-            expected = str(expected).strip().replace("\n", ":")
-            result = str(stdout.getvalue().strip()).replace("\n", ":")
+            expected = str(expected).strip()
+            result = str(stdout.getvalue().strip())
 
             self.assertEqual(expected, result)
 
@@ -79,8 +81,8 @@ class TestLab4(TestCase):
         with patch('sys.stdin', StringIO(input_string)):
             NodeRank.main()
 
-            expected = str(expected).strip().replace("\n", ":")
-            result = str(stdout.getvalue().strip()).replace("\n", ":")
+            expected = str(expected).strip()
+            result = str(stdout.getvalue().strip())
 
             self.assertEqual(expected, result)
 
@@ -98,8 +100,8 @@ class TestLab4(TestCase):
         with patch('sys.stdin', StringIO(input_string)):
             ClosestBlackNode.main()
 
-            expected = str(expected).strip().replace("\n", ":")
-            result = str(stdout.getvalue().strip()).replace("\n", ":")
+            expected = str(expected).strip()
+            result = str(stdout.getvalue().strip())
 
             self.assertEqual(expected, result)
 
@@ -117,8 +119,8 @@ class TestLab4(TestCase):
         with patch('sys.stdin', StringIO(input_string)):
             ClosestBlackNode.main()
 
-            expected = str(expected).strip().replace("\n", ":")
-            result = str(stdout.getvalue().strip()).replace("\n", ":")
+            expected = str(expected).strip()
+            result = str(stdout.getvalue().strip())
 
             self.assertEqual(expected, result)
 
@@ -136,8 +138,8 @@ class TestLab4(TestCase):
         with patch('sys.stdin', StringIO(input_string)):
             ClosestBlackNode.main()
 
-            expected = str(expected).strip().replace("\n", ":")
-            result = str(stdout.getvalue().strip()).replace("\n", ":")
+            expected = str(expected).strip()
+            result = str(stdout.getvalue().strip())
 
             self.assertEqual(expected, result)
 
@@ -155,8 +157,8 @@ class TestLab4(TestCase):
         with patch('sys.stdin', StringIO(input_string)):
             ClosestBlackNode.main()
 
-            expected = str(expected).strip().replace("\n", ":")
-            result = str(stdout.getvalue().strip()).replace("\n", ":")
+            expected = str(expected).strip()
+            result = str(stdout.getvalue().strip())
 
             self.assertEqual(expected, result)
 
