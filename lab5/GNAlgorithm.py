@@ -104,11 +104,58 @@ def zero_weights_on_graph(graph: dict):
     return graph
 
 
-def find_shortest_paths(graph_input: dict, first_node: int, second_node: int):
-    pass
+def find_full_paths_recursive(current_edges_graph, weight_graph, current_node, finish_node, source_path, source_cost):
+    current_path = source_path.copy()
+    cost = source_cost
+
+    current_path.append(current_node)
+
+    if current_node == finish_node:
+        result = (current_path, cost)
+        result_list = []
+        result_list.append(result)
+        return result_list
+
+    full_paths = []
+
+    for first_node, second_node in current_edges_graph.keys():
+        if first_node != current_node and second_node != current_node:
+            continue
+
+        if first_node == current_node:
+            next_node = second_node
+        else:
+            next_node = first_node
+
+        if next_node in current_path:
+            continue
+
+        additional_cost = get_edge_weight(weight_graph, current_node, next_node)
+
+        full_paths.extend(find_full_paths_recursive(current_edges_graph, weight_graph
+                                                    , next_node, finish_node, current_path, cost + additional_cost))
+
+    return full_paths
 
 
-def calculate_centralises(graph: dict, input_graph: dict):
+def find_shortest_paths(current_edges_graph: dict, weight_graph: dict, first_node: int, second_node: int):
+    current_path = []
+    current_cost = 0
+
+    paths_counts = find_full_paths_recursive(current_edges_graph, weight_graph, first_node, second_node, current_path,
+                                             current_cost)
+
+    if len(paths_counts) == 0:
+        return list()
+
+    shortest_path = min(x[1] for x in paths_counts)
+
+    shortest_paths = (x[0] for x in paths_counts if x[1] == shortest_path)
+
+    return list(shortest_paths)
+
+
+def calculate_centralises(graph: dict, input_graph: dict, source_weight_graph: dict):
     graph = zero_weights_on_graph(graph)
 
     for first_node in input_graph.keys():
@@ -116,15 +163,15 @@ def calculate_centralises(graph: dict, input_graph: dict):
             if first_node >= second_node:
                 continue
 
-            shortest_paths = find_shortest_paths(input_graph, first_node, second_node)
+            shortest_paths = find_shortest_paths(graph, source_weight_graph, first_node, second_node)
 
             num_shortest_paths = len(shortest_paths)
             for path in shortest_paths:
                 for i in range(len(path) - 1):
-                    first_node = path[i]
-                    second_node = path[i + 1]
+                    path_node_first = path[i]
+                    path_node_second = path[i + 1]
 
-                    add_edge_weight(graph, first_node, second_node, 1.0 / num_shortest_paths)
+                    add_edge_weight(graph, path_node_first, path_node_second, 1.0 / num_shortest_paths)
 
     return graph
 
@@ -141,56 +188,65 @@ def get_node_weights(graph_weights: dict, node: int):
 def calculate_modularity(graph_input: dict, graph_weights: dict, graph_centralises: dict):
     q = 0
     m = calculate_total_weights(graph_weights)
-    groups = get_graph_groups(graph_input, graph_centralises)
+    groups = get_graph_groups(graph_input, graph_centralises, graph_weights)
 
     for group in groups:
         for first_node in group:
             for second_node in group:
-                if first_node == second_node:
-                    continue
                 a = get_edge_weight(graph_weights, first_node, second_node)
+                if a < 1:
+                    a = 0
                 ku = get_node_weights(graph_weights, first_node)
                 kv = get_node_weights(graph_weights, second_node)
-                q += (a - (ku * kv / (2.0 * m)))
+                sum_part = (a - (ku * kv / (2.0 * m)))
+                q += sum_part
 
-    return q
+    return q / (2 * m)
 
 
-def get_graph_groups(source_graph: dict, current_weighed_graph: dict):
+def get_graph_groups(source_graph: dict, graph_centralises: dict, weight_graph: dict):
     groups = {}
-    visited = []
+    visited = set()
 
     for node in source_graph.keys():
         if node in visited:
             continue
-        groups[node] = []
+        groups[node] = set()
+        groups[node].add(node)
+        visited.add(node)
 
-        for next_node in source_graph[node]:
-            if not (node, next_node) or not (next_node, node) in current_weighed_graph:
+        for second_node in source_graph.keys():
+            if second_node in visited:
                 continue
-            groups[node].append(next)
+            paths = find_shortest_paths(graph_centralises, weight_graph, node, second_node)
+            for path in paths:
+                groups[node] = groups[node].union(path)
+                visited = visited.union(path)
 
     return groups.values()
 
 
-def get_current_graph_string(source_graph: dict, current_weighed_graph: dict):
-    groups = get_graph_groups(source_graph, current_weighed_graph)
+def get_current_graph_string(source_graph: dict, graph_centralises: dict, weight_graph: dict):
+    groups = get_graph_groups(source_graph, graph_centralises, weight_graph)
 
-    return ' '.join('-'.join(x) for x in groups)
+    group_strings = []
+    for group in groups:
+        group_strings.append("-".join(str(x) for x in group))
+
+    return " ".join(group_strings)
 
 
 def remove_highest_edges_from_graph_and_print(graph: dict):
-    max_weight = 0
-    for weight in graph.values():
-        if max_weight < weight:
-            max_weight = weight
+    max_weight = max(graph.values())
+
+    graph_mod = graph.copy()
 
     for key, value in graph.items():
         if value == max_weight:
             print(f"{key[0]} {key[1]}")
-            del graph[key]
+            del graph_mod[key]
 
-    return graph
+    return graph_mod
 
 
 def main():
@@ -200,16 +256,17 @@ def main():
 
     graph_weights = add_starting_weights_to_graph(graph_input, non_similarity)
 
-    communities_over_iterations = {}
+    communities_over_iterations = []
 
-    graph_centralises = graph_weights
+    graph_centralises = graph_weights.copy()
 
     while True:
-        graph_centralises = calculate_centralises(graph_centralises, graph_input)
+        graph_centralises = calculate_centralises(graph_centralises, graph_input, graph_weights)
 
         modularity = calculate_modularity(graph_input, graph_weights, graph_centralises)
 
-        communities_over_iterations[get_current_graph_string(graph_input, graph_centralises)] = modularity
+        communities_over_iterations.append(
+            (get_current_graph_string(graph_input, graph_centralises, graph_weights), modularity))
 
         graph_centralises = remove_highest_edges_from_graph_and_print(graph_centralises)
 
