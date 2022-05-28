@@ -256,6 +256,8 @@ def remove_highest_edges_from_graph_and_print(graph: dict):
 
 
 def main():
+    DEBUG = True
+
     graph_input, graph_features = read_input()
 
     non_similarity = calculate_non_similarity(graph_features)
@@ -270,6 +272,9 @@ def main():
         graph_centralises = calculate_centralises(graph_centralises, graph_input, graph_weights)
 
         modularity = calculate_modularity(graph_input, graph_weights, graph_centralises)
+
+        if DEBUG:
+            print("MODULARITY %.4f" % modularity)
 
         communities_over_iterations.append(
             (get_current_graph_string(graph_input, graph_centralises, graph_weights), modularity))
