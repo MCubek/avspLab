@@ -57,7 +57,7 @@ def calculate_non_similarity(graph_features):
     return non_similarity
 
 
-def add_weights_to_graph(graph, non_similarity):
+def add_starting_weights_to_graph(graph, non_similarity):
     weighed_graph = {}
 
     for left in graph.keys():
@@ -78,20 +78,102 @@ def calculate_total_weights(graph_weights):
     return count
 
 
-def calculate_centralises(total_weights):
+def get_edge_weight(graph: dict, first_node: int, second_node: int):
+    if first_node > second_node:
+        temp = first_node
+        first_node = second_node
+        second_node = temp
+
+    if (first_node, second_node) not in graph:
+        return -1
+    return graph[(first_node, second_node)]
+
+
+def add_edge_weight(graph: dict, first_node: int, second_node: int, weight: float):
+    if first_node > second_node:
+        temp = first_node
+        first_node = second_node
+        second_node = temp
+
+    graph[(first_node, second_node)] += weight
+
+
+def zero_weights_on_graph(graph: dict):
+    for node in graph.keys():
+        graph[node] = 0
+    return graph
+
+
+def find_shortest_paths(graph_input: dict):
     pass
 
 
-def calculate_modularity():
-    pass
+def calculate_centralises(graph_input: dict):
+    graph = zero_weights_on_graph(graph_input)
+
+    for first_node in graph_input.keys():
+        for second_node in graph_input.keys():
+            if first_node >= second_node:
+                continue
+
+            shortest_paths = find_shortest_paths(graph_input)
+
+            num_shortest_paths = len(shortest_paths)
+            for path in shortest_paths:
+                for i in range(len(path) - 1):
+                    first_node = path[i]
+                    second_node = path[i + 1]
+
+                    add_edge_weight(graph, first_node, second_node, 1.0 / num_shortest_paths)
 
 
-def get_current_graph_string(graph):
-    pass
+def get_node_weights(graph_weights: dict, node: int):
+    weights = 0
+    for node1, node2 in graph_weights.keys():
+        if node1 == node or node2 == node:
+            weights += graph_weights[(node1, node2)]
+
+    return weights
 
 
-def remove_highest_edges_from_graph_and_print(graph):
-    pass
+def calculate_modularity(graph_weights: dict, graph_centralities: dict):
+    q = 0
+    m = calculate_total_weights(graph_weights)
+
+
+def get_graph_groups(source_graph: dict, current_weighed_graph: dict):
+    groups = {}
+    visited = []
+
+    for node in source_graph.keys():
+        if node in visited:
+            continue
+        groups[node] = []
+
+        for next_node in source_graph[node]:
+            if not (node, next_node) or not (next_node, node) in current_weighed_graph:
+                continue
+            groups[node].append(next)
+
+    return groups.values()
+
+
+def get_current_graph_string(source_graph: dict, current_weighed_graph: dict):
+    groups = get_graph_groups(source_graph, current_weighed_graph)
+
+    return ' '.join('-'.join(x) for x in groups)
+
+
+def remove_highest_edges_from_graph_and_print(graph: dict):
+    max_weight = 0
+    for weight in graph.values():
+        if max_weight < weight:
+            max_weight = weight
+
+    for key, value in graph.items():
+        if value == max_weight:
+            print(f"{key[0]} {key[1]}")
+            del graph[key]
 
 
 def main():
@@ -99,20 +181,20 @@ def main():
 
     non_similarity = calculate_non_similarity(graph_features)
 
-    graph_weights = add_weights_to_graph(graph_input, non_similarity)
-
-    total_weights = calculate_total_weights(graph_weights)
+    graph_weights = add_starting_weights_to_graph(graph_input, non_similarity)
 
     communities_over_iterations = {}
 
+    graph = {}
+
     while True:
-        graph = calculate_centralises(total_weights)
+        graph_centralities = calculate_centralises(graph_input)
 
-        modularity = calculate_modularity()
+        modularity = calculate_modularity(graph_weights, graph_centralities)
 
-        communities_over_iterations[get_current_graph_string(graph)] = modularity
+        communities_over_iterations[get_current_graph_string(graph_input, graph_centralities)] = modularity
 
-        graph = remove_highest_edges_from_graph_and_print(graph)
+        graph_centralities = remove_highest_edges_from_graph_and_print(graph_centralities)
 
         if len(graph.keys()) == 0:
             break
