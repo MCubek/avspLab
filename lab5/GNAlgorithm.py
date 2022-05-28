@@ -25,6 +25,9 @@ def read_input():
 
         graph_features[number] = features
 
+        if number not in graph:
+            graph[number] = []
+
         try:
             line = input()
         except EOFError:
@@ -230,10 +233,8 @@ def get_current_graph_string(source_graph: dict, graph_centralises: dict, weight
     groups = get_graph_groups(source_graph, graph_centralises, weight_graph)
 
     group_strings = []
-    for group in groups:
-        group_strings.append("-".join(str(x) for x in group))
-
-    group_strings.sort(key=lambda x: len(x))
+    for group in sorted(groups, key=lambda x: (len(x), list(x)[0])):
+        group_strings.append("-".join(str(x) for x in sorted(group)))
 
     return " ".join(group_strings)
 
@@ -243,12 +244,12 @@ def remove_highest_edges_from_graph_and_print(graph: dict):
 
     graph_mod = graph.copy()
 
-    items = list(graph.items())
+    keys = list(graph.keys())
 
-    items.sort(key=lambda x: str(x[0][0])+str(x[0][1]))
+    keys.sort(key=lambda x: (x[0], x[1]))
 
-    for key, value in items:
-        if value == max_weight:
+    for key in keys:
+        if graph[key] == max_weight:
             print(f"{key[0]} {key[1]}")
             del graph_mod[key]
 
@@ -256,7 +257,7 @@ def remove_highest_edges_from_graph_and_print(graph: dict):
 
 
 def main():
-    DEBUG = True
+    DEBUG = False
 
     graph_input, graph_features = read_input()
 
