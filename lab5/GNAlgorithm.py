@@ -233,6 +233,8 @@ def get_current_graph_string(source_graph: dict, graph_centralises: dict, weight
     for group in groups:
         group_strings.append("-".join(str(x) for x in group))
 
+    group_strings.sort(key=lambda x: len(x))
+
     return " ".join(group_strings)
 
 
@@ -241,7 +243,11 @@ def remove_highest_edges_from_graph_and_print(graph: dict):
 
     graph_mod = graph.copy()
 
-    for key, value in graph.items():
+    items = list(graph.items())
+
+    items.sort(key=lambda x: str(x[0][0])+str(x[0][1]))
+
+    for key, value in items:
         if value == max_weight:
             print(f"{key[0]} {key[1]}")
             del graph_mod[key]
@@ -273,9 +279,9 @@ def main():
         if len(graph_centralises.keys()) == 0:
             break
 
-    communities_over_iterations = dict(sorted(communities_over_iterations.items()))
+    communities_over_iterations.sort(key=(lambda x: x[1]), reverse=True)
 
-    print("%s %s".format(communities_over_iterations.items()[0]))
+    print(communities_over_iterations[0][0])
 
 
 if __name__ == '__main__':
