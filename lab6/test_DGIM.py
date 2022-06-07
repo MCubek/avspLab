@@ -3,6 +3,7 @@ from unittest import TestCase
 from unittest.mock import patch
 
 from lab6 import DGIM
+from lab6 import test
 
 
 class Test(TestCase):
